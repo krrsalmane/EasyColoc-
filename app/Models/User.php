@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Colocation;
 
 class User extends Authenticatable
 {
@@ -29,6 +30,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
+        'is_banned',
+        'reputation_score'
     ];
 
     /**
@@ -57,11 +61,26 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+   protected function casts(): array
+{
+    return [
+        'is_admin' => 'boolean',
+        'is_banned' => 'boolean',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+}
+
+// User owns many colocations
+public function ownedColocations()
+{
+    return $this->hasMany(Colocation::class, 'owner_id');
+}
+
+// User belongs to many colocations
+public function colocations()
+{
+    return $this->belongsToMany(Colocation::class)
+                ->withPivot('role', 'joined_at', 'left_at');
+}
 }
