@@ -31,4 +31,9 @@ public function categories()
 {
     return $this->hasMany(Category::class);
 }
+
+public function payments()
+{
+    return $this->hasMany(Payment::class);
+}
 }
