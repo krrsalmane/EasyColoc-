@@ -15,23 +15,24 @@ class InvitationMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        // public readonly Invitation $invitation,
+        public readonly Invitation $invitation,
     ) {
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "You're invited to join ",
+            subject: "You're invited to join " . $this->invitation->colocation->name,
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.test',
+            view: 'emails.invitation',
             with: [
-                'invitation' => 'test'
+                'invitation' => $this->invitation,
+                'link' => route('invitations.accept', $this->invitation->token),
             ],
         );
     }
