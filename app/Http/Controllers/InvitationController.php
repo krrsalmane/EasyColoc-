@@ -9,10 +9,16 @@ class InvitationController extends Controller
 {
     public function accept(string $token)
     {
-        $user       = auth()->user();
+        // If not logged in, redirect to login then come back here
+        if (!auth()->check()) {
+            session(['url.intended' => request()->fullUrl()]);
+            return redirect()->route('login')->with('info', 'Please log in to accept your invitation.');
+        }
+
+        $user = auth()->user();
         $invitation = Invitation::where('token', $token)
-                                ->where('status', 'pending')
-                                ->firstOrFail();
+            ->where('status', 'pending')
+            ->firstOrFail();
 
         // Check email matches
         if ($invitation->email !== $user->email) {
@@ -21,9 +27,9 @@ class InvitationController extends Controller
 
         // Block if already in active colocation
         $alreadyMember = $user->colocations()
-                              ->wherePivotNull('left_at')
-                              ->where('status', 'active')
-                              ->exists();
+            ->wherePivotNull('left_at')
+            ->where('status', 'active')
+            ->exists();
 
         if ($alreadyMember) {
             return redirect()->route('dashboard')->with('error', 'You already have an active colocation.');
@@ -32,18 +38,23 @@ class InvitationController extends Controller
         $invitation->update(['status' => 'accepted']);
 
         $invitation->colocation->members()->attach($user->id, [
-            'role'      => 'member',
+            'role' => 'member',
             'joined_at' => now(),
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'You joined the colocation.');
+        return redirect()->route('dashboard')->with('success', 'You joined the colocation!');
     }
 
     public function refuse(string $token)
     {
+        if (!auth()->check()) {
+            session(['url.intended' => request()->fullUrl()]);
+            return redirect()->route('login')->with('info', 'Please log in to refuse your invitation.');
+        }
+
         $invitation = Invitation::where('token', $token)
-                                ->where('status', 'pending')
-                                ->firstOrFail();
+            ->where('status', 'pending')
+            ->firstOrFail();
 
         $invitation->update(['status' => 'refused']);
 

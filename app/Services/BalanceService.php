@@ -8,7 +8,6 @@ class BalanceService
 {
     public function calculate(Colocation $colocation): array
     {
-        // Get active members
         $members = $colocation->members()->wherePivotNull('left_at')->get();
         $count   = $members->count();
 
@@ -17,19 +16,22 @@ class BalanceService
         $totalExpenses = $colocation->expenses()->sum('amount');
         $share         = $totalExpenses / $count;
 
-        // Calculate each member's balance
         $balances = [];
         foreach ($members as $member) {
-            $paid              = $colocation->expenses()->where('user_id', $member->id)->sum('amount');
+            $paid     = $colocation->expenses()->where('user_id', $member->id)->sum('amount');
+            
+            // Subtract payments made, add payments received
+            $paid_out = $colocation->payments()->where('from_user_id', $member->id)->sum('amount');
+            $paid_in  = $colocation->payments()->where('to_user_id', $member->id)->sum('amount');
+
             $balances[$member->id] = [
                 'user'    => $member,
                 'paid'    => $paid,
                 'share'   => $share,
-                'balance' => round($paid - $share, 2),
+                'balance' => round($paid - $share - $paid_out + $paid_in, 2),
             ];
         }
 
-        // Calculate who owes whom
         $settlements = $this->simplifyDebts($balances);
 
         return ['balances' => $balances, 'settlements' => $settlements];
@@ -37,8 +39,8 @@ class BalanceService
 
     private function simplifyDebts(array $balances): array
     {
-        $debtors   = array_filter($balances, fn($b) => $b['balance'] < 0);
-        $creditors = array_filter($balances, fn($b) => $b['balance'] > 0);
+        $debtors     = array_filter($balances, fn($b) => $b['balance'] < 0);
+        $creditors   = array_filter($balances, fn($b) => $b['balance'] > 0);
         $settlements = [];
 
         foreach ($debtors as $debtorId => $debtor) {
@@ -48,7 +50,7 @@ class BalanceService
                 if ($remaining <= 0) break;
                 if ($creditor['balance'] <= 0) continue;
 
-                $amount = min($remaining, $creditor['balance']);
+                $amount        = min($remaining, $creditor['balance']);
                 $settlements[] = [
                     'from'   => $debtor['user'],
                     'to'     => $creditor['user'],
@@ -61,5 +63,11 @@ class BalanceService
         }
 
         return $settlements;
+    }
+
+    public function getUserBalance(Colocation $colocation, int $userId): float
+    {
+        $data = $this->calculate($colocation);
+        return $data['balances'][$userId]['balance'] ?? 0;
     }
 }
