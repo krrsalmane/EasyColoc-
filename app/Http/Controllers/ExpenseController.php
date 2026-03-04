@@ -11,7 +11,6 @@ class ExpenseController extends Controller
 {
     public function index(Colocation $colocation)
     {
-        /** @var \App\Models\User $user */
         $user = auth()->user();
 
         $month    = request('month');
