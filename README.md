@@ -22,9 +22,11 @@ The project includes SQL queries to:
 
 ## 📐 System Diagrams
 
-### 🧩 Class Diagram
-![Class Diagram]("C:\Users\safiy\OneDrive\Images\Screenshots\Screenshot 2026-03-04 112154.png")
 
-### 🔄 Use Case Diagram
-![Use Case Diagram]("C:\Users\safiy\OneDrive\Images\Screenshots\Screenshot 2026-03-04 112239.png")
+
+<h2>🧩 Use Case Diagram</h2>
+<img src="images/Screenshot 2026-03-04 112239.png" alt="Class Diagram" width="700">
+
+<h2>🧩 Class Diagram</h2>
+<img src="images/Screenshot 2026-03-04 112154.png" alt="Class Diagram" width="700">
 
