@@ -9,8 +9,8 @@ class InvitationController extends Controller
 {
     public function accept(string $token)
     {
-        // If not logged in, redirect to login then come back here
-        if (!auth()->check()) {
+
+    if (!auth()->check()) {
             session(['url.intended' => request()->fullUrl()]);
             return redirect()->route('login')->with('info', 'Please log in to accept your invitation.');
         }

@@ -13,7 +13,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Invitation links (public — user must be logged in to accept, but link must be accessible)
+
 Route::get('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
 Route::get('/invitations/{token}/refuse', [InvitationController::class, 'refuse'])->name('invitations.refuse');
 
@@ -26,7 +26,6 @@ Route::middleware([
 
     // Dashboard — passes active colocation + recent expenses
     Route::get('/dashboard', function () {
-        /** @var \App\Models\User $user */
         $user = auth()->user();
 
         $activeColocation = $user->colocations()
